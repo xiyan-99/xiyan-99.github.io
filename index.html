@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夕颜配置仓库 - Surge / Loon / Quantumult X</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #f093fb;
+            --success-color: #4ade80;
+            --warning-color: #fbbf24;
+            --danger-color: #f87171;
+            --dark: #1e293b;
+            --gray: #64748b;
+            --light-gray: #e2e8f0;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 40px 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            color: var(--gray);
+            font-size: 0.9em;
+        }
+
+        .search-filter {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid var(--light-gray);
+            border-radius: 25px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .filter-tags {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-tag {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: var(--light-gray);
+            color: var(--dark);
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            font-size: 0.9em;
+        }
+
+        .filter-tag:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .filter-tag.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .module-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .module-card.hidden {
+            display: none;
+        }
+
+        .module-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .module-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+
+        .module-title {
+            flex: 1;
+        }
+
+        .module-title h3 {
+            font-size: 1.3em;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .module-tag {
+            display: inline-block;
+            padding: 3px 10px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.75em;
+            margin-right: 5px;
+        }
+
+        .module-description {
+            color: var(--gray);
+            margin-bottom: 20px;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        .platform-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .platform-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 25px;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s;
+            font-size: 0.9em;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+        }
+
+        .platform-btn img {
+            height: 20px;
+            pointer-events: none;
+        }
+
+        .platform-btn.surge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .platform-btn.loon {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .platform-btn.qx {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .platform-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .platform-btn.disabled {
+            background: var(--light-gray);
+            color: var(--gray);
+            cursor: not-allowed;
+        }
+
+        .platform-btn.disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .info-section {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        .info-section h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-section h3 {
+            color: var(--dark);
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .info-section p, .info-section li {
+            color: var(--gray);
+            margin-bottom: 10px;
+        }
+
+        .info-section code {
+            background: var(--bg-color);
+            padding: 2px 8px;
+            border-radius: 5px;
+            color: var(--primary-color);
+            font-family: "SF Mono", Monaco, Consolas, monospace;
+            font-size: 0.9em;
+        }
+
+        .notice-box {
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 4px solid;
+        }
+
+        .notice-box.info {
+            background: #dbeafe;
+            border-color: #3b82f6;
+            color: #1e40af;
+        }
+
+        .notice-box.warning {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #92400e;
+        }
+
+        .notice-box.success {
+            background: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+
+        .footer {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            color: var(--gray);
+        }
+
+        .footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin: 20px 0;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .platform-buttons {
+                flex-direction: column;
+            }
+
+            .platform-btn {
+                justify-content: center;
+            }
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .back-to-top.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-5px);
+            background: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 夕颜配置仓库</h1>
+        <p>Surge / Loon / Quantumult X 通用配置与脚本</p>
+    </div>
+
+    <div class="container">
+        <!-- 统计卡片 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="number" id="totalModules">0</div>
+                <div class="label">总模块数</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="surgeModules">0</div>
+                <div class="label">Surge 模块</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="loonModules">0</div>
+                <div class="label">Loon 插件</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="qxModules">0</div>
+                <div class="label">QX 重写</div>
+            </div>
+        </div>
+
+        <!-- 搜索和筛选 -->
+        <div class="search-filter">
+            <input type="text" class="search-box" id="searchBox" placeholder="🔍 搜索模块名称或描述...">
+            <div class="filter-tags">
+                <div class="filter-tag active" data-category="all">全部</div>
+                <div class="filter-tag" data-category="monitor">监控</div>
+                <div class="filter-tag" data-category="unlock">解锁</div>
+                <div class="filter-tag" data-category="auth">授权</div>
+                <div class="filter-tag" data-category="wechat">微信</div>
+                <div class="filter-tag" data-category="theme">主题</div>
+                <div class="filter-tag" data-category="video">视频</div>
+                <div class="filter-tag" data-category="tools">工具</div>
+            </div>
+        </div>
+
+        <!-- 模块列表 -->
+        <div class="modules-grid" id="modulesGrid"></div>
+
+        <!-- 使用说明 -->
+        <div class="info-section">
+            <h2>📖 使用说明</h2>
+            
+            <div class="notice-box info">
+                <strong>💡 一键导入</strong><br>
+                点击对应平台按钮即可自动跳转到应用并导入配置，无需手动复制链接！
+            </div>
+
+            <h3>平台支持</h3>
+            <p>本仓库提供三大主流代理工具的配置：</p>
+            <ul>
+                <li><strong>Surge</strong>：<code>.sgmodule</code> 模块，支持 <code>$argument</code> 参数传递</li>
+                <li><strong>Loon</strong>：<code>.plugin</code> 插件，支持 <code>[Argument]</code> 参数面板</li>
+                <li><strong>Quantumult X</strong>：<code>.conf</code> 重写配置，需手动配置参数</li>
+            </ul>
+
+            <h3>脚本兼容性</h3>
+            <p>所有脚本采用统一的跨平台编写规范：</p>
+            <ul>
+                <li>✅ 统一的环境检测和平台判断</li>
+                <li>✅ 兼容三端的 HTTP 请求封装</li>
+                <li>✅ 统一的持久化存储接口</li>
+                <li>✅ 参数传递与默认值兜底</li>
+            </ul>
+
+            <div class="notice-box warning">
+                <strong>⚠️ QX 用户注意</strong><br>
+                Quantumult X 不支持 <code>$argument</code> 参数传递，部分功能需要在脚本内修改默认配置或使用持久化存储。
+            </div>
+        </div>
+
+        <!-- 开发规范 -->
+        <div class="info-section">
+            <h2>👨‍💻 开发规范</h2>
+            
+            <h3>参数策略</h3>
+            <p>统一采用 QueryString 格式传递参数：</p>
+            <pre><code>KEY=value&KEY2=value2</code></pre>
+            
+            <ul>
+                <li><strong>Surge/Loon</strong>：通过 <code>$argument</code> 传入</li>
+                <li><strong>QX</strong>：通过脚本内默认值或持久化存储读取</li>
+            </ul>
+
+            <h3>通用脚手架</h3>
+            <p>所有新脚本应基于通用运行时封装：</p>
+            <pre><code>const Env = (() => {
+  const isSurge = typeof $httpClient !== "undefined";
+  const isQX = typeof $task !== "undefined";
+  const isLoon = !isSurge && !isQX;
+  
+  // 统一的通知、存储、HTTP 接口...
+})();</code></pre>
+
+            <div class="notice-box success">
+                <strong>✨ 最佳实践</strong><br>
+                优先级：<code>$argument</code>（Surge/Loon）→ 持久化存储（三端通用）→ 默认值（脚本内）
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <div class="footer">
+            <p><strong>作者</strong>: 夕颜</p>
+            <p><strong>微信</strong>: 1418581664</p>
+            <p><strong>主页</strong>: <a href="https://iosxy.xin" target="_blank">https://iosxy.xin</a></p>
+            <p><strong>仓库</strong>: <a href="https://github.com/xiyan-99/vpn" target="_blank">https://github.com/xiyan-99/vpn</a></p>
+            <p style="margin-top: 20px; color: var(--gray); font-size: 0.9em;">
+                本仓库仅用于学习交流，请遵守相关法律法规
+            </p>
+        </div>
+    </div>
+
+    <div class="back-to-top" id="backToTop">↑</div>
+
+    <script>
+        // ==================== 模块数据配置区 ====================
+        // 在这里添加新模块，会自动生成卡片和统计
+        const MODULES = [
+            {
+                id: 'ios-monitor',
+                icon: '📱',
+                title: 'iOS 全能监控',
+                description: '一站式监控 App Store 更新、Cydia 源、巨魔 IPA、巨魔 DEB 四大功能',
+                category: 'monitor',
+                tags: ['监控', '自动化'],
+                platforms: {
+                    surge: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Surge/module/ios-xiyan.sgmodule',
+                    loon: null, // null 表示该平台不支持
+                    qx: null
+                }
+            },
+            {
+                id: 'emby-unlock',
+                icon: '🔓',
+                title: 'Emby 会员解锁',
+                description: '点击"恢复购买"即可解锁 Emby 会员功能，享受完整体验',
+                category: 'unlock',
+                tags: ['解锁', '会员'],
+                platforms: {
+                    surge: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Surge/module/emby.sgmodule',
+                    loon: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Loon/Plugins/emby.plugin',
+                    qx: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/QX/rewrite/emby.conf'
+                }
+            },
+            {
+                id: 'ai-auth',
+                icon: '🤖',
+                title: 'AI 接口授权',
+                description: '支持多个 AI 接口的 wxid 自动注入（ai.cios.top、gpt.9527cleo.com 等）',
+                category: 'auth',
+                tags: ['授权', 'AI'],
+                platforms: {
+                    surge: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Surge/module/xy-ai.sgmodule',
+                    loon: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Loon/Plugins/xy-ai.plugin',
+                    qx: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/QX/rewrite/xy-aiqx.conf'
+                }
+            },
+            {
+                id: 'fvtoken',
+                icon: '🔑',
+                title: 'FineShare Token',
+                description: '自动抓取并保存 FineShare Token，方便后续使用',
+                category: 'auth',
+                tags: ['Token', '抓取'],
+                platforms: {
+                    surge: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Surge/module/fvtoken.sgmodule',
+                    loon: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Loon/Plugins/fvtoken.plugin',
+                    qx: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/QX/rewrite/fvtoken.conf'
+                }
+            },
+            {
+                id: 'wx-doutu',
+                icon: '💬',
+                title: '微信斗图接口',
+                description: '自动替换微信斗图接口的 wxid，让斗图更顺畅',
+                category: 'wechat',
+                tags: ['微信', '斗图'],
+                platforms: {
+                    surge: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Surge/module/xy-wxdg.sgmodule',
+                    loon: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Loon/Plugins/xy-wxdt.plugin',
+                    qx: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/QX/rewrite/xy-dtqx.conf'
+                }
+            },
+            {
+                id: 'wx-report',
+                icon: '📢',
+                title: '微信举报修改',
+                description: '修改微信举报违规词和参数，保护隐私安全',
+                category: 'wechat',
+                tags: ['微信', '安全'],
+                platforms: {
+                    surge: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Surge/module/xy-wx110.sgmodule',
+                    loon: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Loon/Plugins/xy-wx110.plugin',
+                    qx: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/QX/rewrite/xy-wx110.conf'
+                }
+            },
+            {
+                id: 'themebox',
+                icon: '🎨',
+                title: '主题盒子通知',
+                description: '自动通知主题盒子兑换结果，及时了解兑换状态',
+                category: 'theme',
+                tags: ['主题', '通知'],
+                platforms: {
+                    surge: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Surge/module/xy-themebox.sgmodule',
+                    loon: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Loon/Plugins/xy-themebox.plugin',
+                    qx: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/QX/rewrite/xy-themeboxqx.conf'
+                }
+            },
+            {
+                id: 'pkc-themebox',
+                icon: '🎁',
+                title: 'PKC 主题盒子',
+                description: 'PKC 主题盒子兑换通知，不错过任何精彩主题',
+                category: 'theme',
+                tags: ['主题', 'PKC'],
+                platforms: {
+                    surge: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Surge/module/xy-pkctb.sgmodule',
+                    loon: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Loon/Plugins/xy-pkctb.plugin',
+                    qx: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/QX/rewrite/xy-pkctbqx.conf'
+                }
+            },
+            {
+                id: 'telegram',
+                icon: '✈️',
+                title: 'Telegram 跳转',
+                description: 'Telegram 外部链接一键跳转到客户端（支持多种 TG 客户端）',
+                category: 'tools',
+                tags: ['Telegram', '跳转'],
+                platforms: {
+                    surge: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Surge/module/telegram.sgmodule',
+                    loon: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Loon/Plugins/telegram.plugin',
+                    qx: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/QX/rewrite/telegram.conf'
+                }
+            },
+            {
+                id: 'douyin-url',
+                icon: '🎬',
+                title: '抖音链接捕获',
+                description: '自动捕获并保存抖音音视频直链，方便下载分享',
+                category: 'video',
+                tags: ['抖音', '视频'],
+                platforms: {
+                    surge: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Surge/module/videos-url-simple.sgmodule',
+                    loon: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Loon/Plugins/xy-dyurl.plugin',
+                    qx: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/QX/rewrite/douyin.conf'
+                }
+            },
+            {
+                id: 'trollstore-repo',
+                icon: '🛠️',
+                title: '巨魔注入器重写',
+                description: '重写巨魔注入器默认源为夕颜源，提供更稳定的服务',
+                category: 'tools',
+                tags: ['巨魔', '重写'],
+                platforms: {
+                    surge: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Surge/module/tf-repo-sg.sgmodule',
+                    loon: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/Loon/Plugins/tf-repo-loon.plugin',
+                    qx: 'https://raw.githubusercontent.com/xiyan-99/vpn/refs/heads/main/QX/rewrite/tf-repo-qx.conf'
+                }
+            }
+        ];
+
+        // ==================== 自动生成功能 ====================
+        
+        // 生成 URL Scheme
+        function generateUrlScheme(platform, url) {
+            const encodedUrl = encodeURIComponent(url);
+            switch(platform) {
+                case 'surge':
+                    return `surge:///install-module?url=${encodedUrl}`;
+                case 'loon':
+                    return `loon://import?plugin=${encodedUrl}`;
+                case 'qx':
+                    const qxConfig = {
+                        "rewrite_remote": [
+                            `${url}, tag=${MODULES.find(m => m.platforms.qx === url)?.title || 'QX重写'}, update-interval=86400, opt-parser=false, enabled=true`
+                        ]
+                    };
+                    return `quantumult-x:///add-resource?remote-resource=${encodeURIComponent(JSON.stringify(qxConfig))}`;
+                default:
+                    return '#';
+            }
+        }
+
+        // 生成模块卡片
+        function createModuleCard(module) {
+            const tags = module.tags.map(tag => `<span class="module-tag">${tag}</span>`).join('');
+            
+            const platformButtons = ['surge', 'loon', 'qx'].map(platform => {
+                const url = module.platforms[platform];
+                const platformNames = { surge: 'Surge', loon: 'Loon', qx: 'Quantumult X' };
+                
+                if (!url) {
+                    return `<button class="platform-btn ${platform} disabled" disabled>
+                        ${platformNames[platform]} (暂无)
+                    </button>`;
+                }
+                
+                return `<a href="${generateUrlScheme(platform, url)}" class="platform-btn ${platform}">
+                    ${platformNames[platform]}
+                </a>`;
+            }).join('');
+
+            return `
+                <div class="module-card" data-category="${module.category}" data-id="${module.id}">
+                    <div class="module-header">
+                        <div class="module-icon">${module.icon}</div>
+                        <div class="module-title">
+                            <h3>${module.title}</h3>
+                            ${tags}
+                        </div>
+                    </div>
+                    <div class="module-description">${module.description}</div>
+                    <div class="platform-buttons">${platformButtons}</div>
+                </div>
+            `;
+        }
+
+        // 渲染所有模块
+        function renderModules() {
+            const grid = document.getElementById('modulesGrid');
+            grid.innerHTML = MODULES.map(module => createModuleCard(module)).join('');
+        }
+
+        // 更新统计数据
+        function updateStats() {
+            const total = MODULES.length;
+            const surge = MODULES.filter(m => m.platforms.surge).length;
+            const loon = MODULES.filter(m => m.platforms.loon).length;
+            const qx = MODULES.filter(m => m.platforms.qx).length;
+
+            document.getElementById('totalModules').textContent = total;
+            document.getElementById('surgeModules').textContent = surge;
+            document.getElementById('loonModules').textContent = loon;
+            document.getElementById('qxModules').textContent = qx;
+        }
+
+        // 搜索功能
+        function setupSearch() {
+            const searchBox = document.getElementById('searchBox');
+            searchBox.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                const cards = document.querySelectorAll('.module-card');
+                
+                cards.forEach(card => {
+                    const text = card.textContent.toLowerCase();
+                    card.classList.toggle('hidden', !text.includes(query));
+                });
+            });
+        }
+
+        // 分类筛选
+        function setupFilter() {
+            const filterTags = document.querySelectorAll('.filter-tag');
+            
+            filterTags.forEach(tag => {
+                tag.addEventListener('click', () => {
+                    // 更新激活状态
+                    filterTags.forEach(t => t.classList.remove('active'));
+                    tag.classList.add('active');
+                    
+                    const category = tag.dataset.category;
+                    const cards = document.querySelectorAll('.module-card');
+                    
+                    cards.forEach(card => {
+                        if (category === 'all') {
+                            card.classList.remove('hidden');
+                        } else {
+                            card.classList.toggle('hidden', card.dataset.category !== category);
+                        }
+                    });
+                    
+                    // 清空搜索框
+                    document.getElementById('searchBox').value = '';
+                });
+            });
+        }
+
+        // 返回顶部
+        function setupBackToTop() {
+            const btn = document.getElementById('backToTop');
+            
+            window.addEventListener('scroll', () => {
+                btn.classList.toggle('show', window.scrollY > 300);
+            });
+            
+            btn.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            renderModules();
+            updateStats();
+            setupSearch();
+            setupFilter();
+            setupBackToTop();
+        });
+    </script>
+</body>
+</html>
